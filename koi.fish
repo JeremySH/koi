@@ -10,8 +10,9 @@ function _koi_help -d "get help with koi"
 	echo " koi ws [name]            : create/switch workspace"
 	echo " koi ls                   : list functions"
 	echo " koi lsws                 : list workspaces"
-	echo " koi cat <function>       : display function source"
-	echo " koi rm <function>        : delete a function"
+	echo " koi cat  <function>      : display function source"
+	echo " koi ed   <function>      : edit a function file"
+	echo " koi rm   <function>      : delete a function"
 	echo " koi rmws <workspace>     : delete entire workspace"
 	echo " koi help                 : show this text"
 	echo " koi man                  : verbose guide"
@@ -21,6 +22,10 @@ function _koi_help -d "get help with koi"
 	echo " current workspace: $KOI_FUNCTION_DIR"
 end
 
+function _koi_watch_cmd --on-event fish_postexec -d "watch the command line executions"
+	set -gx KOI_LAST_COMMAND "$argv[1]"
+end
+
 function _koi_cat -d "_koi_cat <funcname> show the source for a custom function"
 	if test -z "$argv[1]"
 		echo I need a func name
@@ -28,6 +33,24 @@ function _koi_cat -d "_koi_cat <funcname> show the source for a custom function"
 		_koi_startup
 		cat "$KOI_FUNCTION_DIR"/"$argv[1]".fish
 	end
+end
+
+function _koi_ed -d "_koi_ed <funcname> edit a function using $EDITOR"
+	set -l ED "pico"
+
+	if test -z "$argv[1]"
+		echo what function?
+		return -1
+	end
+	if test -n "$VISUAL"
+		set  ED $VISUAL
+	else if test -n "$EDITOR"
+		set  ED $EDITOR
+	end
+
+	set fn "$KOI_FUNCTION_DIR"/"$argv[1]".fish
+	$ED $fn
+	source $fn
 end
 
 function _koi_rm -d "_koi_rm <funcname> delete a function"
@@ -136,6 +159,8 @@ _koi_startup
 			_koi_lsws $argv[2..]
 		case cat
 			_koi_cat $argv[2..]
+		case ed
+			_koi_ed $argv[2..]
 		case rm
 			_koi_rm $argv[2..]
 		case rmws
@@ -167,7 +192,9 @@ function :a -d ":a <funcname> <description> | add the last executed command to f
 	echo creating function
 
 	echo function $argv[1] -d \"(echo $argv[2..-1])\" > $filen
-	history | head -n1 | tail -n1  >> $filen ; echo end >> $filen
+	
+	echo "$KOI_LAST_COMMAND" >> $filen
+	echo end >> $filen
 
 	echo saving function $argv[1] into $filen
 

@@ -29,7 +29,7 @@ Hello World!
 
 `:a` is the command you will be using the most. It's weirdly named so as not to conflict with other possible names, and has an "a" meaning "add function."
 
-The magic is that koi takes your last executed line from `history` and crams it inside a file wrapped up in a function. So **you cannot have "two liners", your command must exist on ONE (possibly huge) line**. 
+The magic is that koi keeps track of your last executed command (with an event handler). When you use `:a`, this command is then wrapped in a function and saved as a file inside the current workspace.
 
 > For more help, type `koi help`, or if you're an avid reader: `koi man`.
 
