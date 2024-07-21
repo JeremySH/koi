@@ -49,6 +49,12 @@ function _koi_ed -d "_koi_ed <funcname> edit a function using $EDITOR"
 	end
 
 	set fn "$KOI_FUNCTION_DIR"/"$argv[1]".fish
+	
+	if not test -e "$fn"
+		echo creating function file $fn
+		echo function $argv[1] -d \"description here\"\nend\n > $fn
+	end
+	
 	$ED $fn
 	source $fn
 end
@@ -58,9 +64,15 @@ function _koi_rm -d "_koi_rm <funcname> delete a function"
 	if test -z "$argv[1]"
 		echo I need a function to delete
 	else
-		if rm "$KOI_FUNCTION_DIR"/"$argv[1]".fish
-			functions -e $argv[1]
-			echo function $argv[1] deleted
+		for arg in $argv
+			set fn "$KOI_FUNCTION_DIR"/"$arg".fish
+			if test -e $fn
+				rm $fn
+				functions -e $arg
+				echo function $arg deleted
+			else
+				echo function $arg doesn\'t exist
+			end
 		end
 	end
 end
@@ -91,6 +103,9 @@ function _koi_rmws -d "_koi_rmws [name] remove a workspace"
 end
 
 function _koi_ls -d "list custom functions"
+	if test -n "$KOI_WORKSPACE"
+		echo functions in workspace \"$KOI_WORKSPACE\":
+	end
 	for func in "$KOI_FUNCTION_DIR"/*.fish
 		cat $func | grep -E '^function' | sed -e 's/^function//g'
 	end
